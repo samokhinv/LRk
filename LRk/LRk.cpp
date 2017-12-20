@@ -14,8 +14,15 @@ using namespace std;
 map <char, vector<string>> rules;
 set<char> N, T;
 int k;
+char Ax;
+
+
 
 map<char, set<string>> First_N;
+
+map<int,map<char, int>> GoTo;
+
+vector<set<string>> States;
 
 set<char> GetSet() {
 	set<char> result;
@@ -41,7 +48,7 @@ map<char, vector<string>> ReadRules(int n) {
 	return rules;
 }
 
-//перегрузка оператора, чтобы получить + для множеств строк
+//overloading operator to implement "+ in circle"
 set<string> operator+(set<string> s1, set<string> s2) {
 	set<string> result;
 	for (auto i : s1) {
@@ -73,7 +80,7 @@ set<string> operator+(set<string> s1, set<string> s2) {
 }
 
 
-//Реализация функции First_k, описанной подробно в Серебрякове
+//First_k, described in Serebryakov
 map<char,set<string>> First_NT() {
 	map<char, set<string>> result0;
 	map<char, set<string>> result1;
@@ -118,6 +125,78 @@ map<char,set<string>> First_NT() {
 	return result1;
 }
 
+set<string> First_S(string s) {
+	set<string> result;
+	for (auto i : s) {
+		result = result + First_N[i];
+	}
+	return result;
+}
+
+typedef struct {
+	char N_terminal;
+	string b_dot;
+	string a_dot;
+	string avan;
+} LR_S;
+
+
+
+set <LR_S> Closure(LR_S init) {
+	set <LR_S> res1;
+	set <LR_S> res0;
+	res1.insert(init);
+	do {
+		res0 = res1;
+		for (auto i : res0) {
+			if (N.find(i.a_dot[0]) != N.end()) {
+
+				for (auto l : First_S((i.a_dot + i.avan).substr(1, (i.a_dot + i.avan).length()))) {
+					for (auto m: rules[i.a_dot[0]]){
+						res1.insert({ i.a_dot[0], string() , m, l });
+						}
+				}
+			}
+		}
+	} while (res0 != res1);
+	return res1;
+}
+
+
+vector<set<LR_S>> Automata() {
+	int current = 0;
+	vector<set<LR_S>> result;
+	map<char, set<LR_S>> calculations;
+	
+	result.push_back(Closure({ 'Z', "", string(1,Ax), string(1,'$') }));
+	
+	set<char> NT;
+	NT.insert(N.begin(), N.end());
+	NT.insert(T.begin(), T.end());
+	while (current <= result.size() - 1) {
+		for (auto n : NT) {
+			for (auto s : result[current]) {
+				if (s.a_dot[0] == n) {
+					set<LR_S> temp = Closure({ s.N_terminal, s.b_dot + string(1, s.a_dot[0]), s.avan });
+					calculations[n].insert(temp.begin(), temp.end());
+				}
+			}
+		}
+
+		for (auto c : calculations) {
+			ptrdiff_t pos = find(result.begin(), result.end(), c.second) - result.begin();
+			if (pos >= result.size()) {
+				result.push_back(c.second);
+				GoTo[current][c.first] = find(result.begin(), result.end(), c.second) - result.begin();
+			}
+			else {
+				GoTo[current][c.first] = pos;
+			}
+		}
+		current++;
+	}
+}
+
 int main()
 {
 
@@ -131,8 +210,7 @@ int main()
 	T = GetSet();
 	cin.ignore();
 	cout << "Enter the start symbol: ";
-	char S;
-	cin >> S;
+	cin >> Ax;
 	cin.ignore();
 	cout << "Enter the number of rules: ";
 	int n;

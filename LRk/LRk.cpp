@@ -29,8 +29,52 @@ vector<pair<char, string>> rules_enum;
 map<char, set<string>> First_nt;
 
 map<int,map<char, int>> GoTo;
+map<int, map<string, set<string>>> Action;
 
 vector<set<LR_S>> States;
+
+bool operator< (const LR_S arg1, const LR_S arg2) {
+	if (arg1.N_terminal < arg2.N_terminal)
+		return true;
+	else {
+		if (arg1.N_terminal > arg2.N_terminal)
+			return false;
+		else {
+			if (arg1.b_dot < arg2.b_dot)
+				return true;
+			else {
+				if (arg1.b_dot > arg2.b_dot)
+					return false;
+				else {
+					if (arg1.a_dot < arg2.a_dot)
+						return true;
+					else {
+						if (arg1.a_dot > arg2.a_dot)
+							return false;
+						else {
+							if (arg1.avan < arg2.avan)
+								return true;
+							else
+								return false;
+						}
+					}
+				}
+			}
+
+		}
+	}
+}
+
+bool operator== (const LR_S arg1, const LR_S arg2) {
+	if (arg1.N_terminal == arg2.N_terminal) {
+		if (arg1.b_dot == arg2.b_dot) {
+			if (arg1.a_dot == arg2.a_dot) {
+				return arg1.avan == arg2.avan;
+			}
+		}
+	}
+	return false;
+}
 
 
 set<char> GetSet() {
@@ -184,9 +228,9 @@ set<string> EFF(string s) {
 
 
 
-set <LR_S> Closure(LR_S init) {
-	set <LR_S> res1;
-	set <LR_S> res0;
+set<LR_S> Closure(LR_S init) {
+	set<LR_S> res1;
+	set<LR_S> res0;
 	res1.insert(init);
 	do {
 		res0 = res1;
@@ -252,7 +296,16 @@ map<int, map<string, set<string>>> CreateAction() {
 			}
 			else {
 				if (l.a_dot == "" && l.avan != "$") {
-					int n = find(rules_enum.begin(), rules_enum.end(), { l.N_terminal, l.b_dot }) - rules.begin(); //should be corrected
+					int n = 0;
+					pair<char, string> cur_rule = { l.N_terminal, l.b_dot };
+					while (1) {
+						if (cur_rule == rules_enum[n]) {
+							break;
+						}
+						else {
+							n++;
+						}
+					}
 					result[i][l.avan].insert("Reduce" + to_string(n));
 				}
 				else {
@@ -264,7 +317,21 @@ map<int, map<string, set<string>>> CreateAction() {
 			}
 		}
 	}
+	return result;
 }
+
+
+bool Check() {
+	for (auto i : Action) {
+		for (auto l : i.second) {
+			if (l.second.size() > 1) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
 
 int main()
 {
@@ -293,9 +360,15 @@ int main()
 	First_nt = First_NT();
 
 	States = Automata();
-	//множества lr ситуаций
-	//автомат
-	//таблица
+	Action = CreateAction();
+
+	if (Check()) {
+		cout << "This is LR(k) grammar\n";
+	}
+	else {
+		cout << "This is not LR(k) grammar\n";
+	}
+
 
 
 	while (1);

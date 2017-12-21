@@ -7,7 +7,7 @@
 |`FIRST`<sub>k|:thumbsup:|
 |`EFF`<sub>k|:thumbsup:|
 |`GoTo`|:thumbsup:|
-|`Action`|:worried:|
+|`Action`|:grey_exclamation:|
 |Дерево|:scream:|
 |Интерфейс|:cry:|
   

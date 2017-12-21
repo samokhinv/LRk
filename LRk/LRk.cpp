@@ -7,7 +7,8 @@
 #include <vector>
 #include <map>
 #include <string>
-
+#include <queue>
+#include <stack>
 
 using namespace std;
 
@@ -332,6 +333,67 @@ bool Check() {
 	return true;
 }
 
+string Analyze(string w){
+	string word = w;
+	stack<string> state;
+	state.push("0");
+	string steps;
+	bool error;
+	while (1) {
+		string avan = w.substr(0, k);
+		int t = stoi(state.top(), nullptr);
+		if (Action[t].count(avan) == 0) {
+			error = true;
+			break;
+		}
+		else {
+			if (Action[t][avan].count("Shift") != 0) {
+				if (GoTo[t].count(avan[0]) == 0) {
+					error = true;
+					break;
+				}
+				else {
+					int gt = GoTo[t][avan[0]];
+					state.push(string(1, avan[0]));
+					state.push(to_string(gt));
+				}
+			}
+			else {
+				if (Action[t][avan].count("Accept") != 0) {
+					break;
+				}
+				else {
+					//every set should have only one action since the grammar is lr(k)
+					for (auto r : Action[t][avan]) {
+						steps += r.substr(6);
+						int rule_number = stoi(r.substr(6));
+						int s = 2 * rules_enum[rule_number].second.length();
+						for (int i = 0; i < s; i++) {
+							state.pop();
+						}
+						int new_t = stoi(state.top(), nullptr);
+						if (GoTo[new_t].count(rules_enum[rule_number].first) == 0) {
+							error = true;
+							break;
+						}
+						else {
+							int gt = GoTo[new_t][rules_enum[rule_number].first];
+							state.push(string(1, rules_enum[rule_number].first));
+							state.push(to_string(gt));
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+	if (error) {
+		return "error";
+	}
+	else
+		return steps;
+}
+
 
 int main()
 {
@@ -364,6 +426,12 @@ int main()
 
 	if (Check()) {
 		cout << "This is LR(k) grammar\n";
+		while (1) {
+			cout << "Enter the word: ";
+			string word;
+			cin >> word;
+			cout << Analyze(word) << endl;
+		}
 	}
 	else {
 		cout << "This is not LR(k) grammar\n";

@@ -4,10 +4,10 @@
 
 |Что требуется| Что готово|
 |-------------|:---------:|
-|`FIRST`<sub>k|:thumbsup:|
-|`EFF`<sub>k|:thumbsup:|
+|`FIRST`<sub>k|:no_mouth:|
+|`EFF`<sub>k|:no_mouth:|
 |`GoTo`|:thumbsup:|
-|`Action`|:worried:|
+|`Action`|:thumbsup:|
 |Дерево|:scream:|
 |Интерфейс|:cry:|
   

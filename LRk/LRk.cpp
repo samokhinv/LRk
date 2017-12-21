@@ -18,7 +18,7 @@ char Ax;
 
 
 
-map<char, set<string>> First_N;
+map<char, set<string>> First_nt;
 
 map<int,map<char, int>> GoTo;
 
@@ -128,10 +128,44 @@ map<char,set<string>> First_NT() {
 set<string> First_S(string s) {
 	set<string> result;
 	for (auto i : s) {
-		result = result + First_N[i];
+		result = result + First_nt[i];
 	}
 	return result;
 }
+
+set<string> EFF1(char n) { 
+	set<string> result;
+
+	for (auto i : rules[n]) {
+		set<string> temp;
+		if (N.find(i[0]) == N.end() && i != "e") {
+			temp = First_S(i);
+		}
+		else {
+			if (N.find(i[0]) != N.end()) {
+				temp = EFF1(i[0]) + First_S(i.substr(1, i.length()));
+			}
+		}
+		result.insert(temp.begin(), temp.end());
+	}
+
+	return result;
+}
+
+
+set<string> EFF(string s) {
+	set<string> result;
+	if (N.find(s[0]) == N.end()) {
+		return First_S(s);
+	}
+	else 
+	{
+		if (s != "e") {
+			return EFF1(s[0]) + First_S(s.substr(1, s.length()));
+		}
+	}
+}
+
 
 typedef struct {
 	char N_terminal;
@@ -195,7 +229,11 @@ vector<set<LR_S>> Automata() {
 		}
 		current++;
 	}
+
+	return result;
 }
+
+
 
 int main()
 {
@@ -219,7 +257,7 @@ int main()
 	cout << "Enter the rules: \n";
 	rules = ReadRules(n);
 
-	First_N = First_NT();
+	First_nt = First_NT();
 
 	//множества lr ситуаций
 	//автомат

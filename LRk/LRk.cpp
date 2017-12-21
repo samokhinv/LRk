@@ -11,18 +11,27 @@
 
 using namespace std;
 
+
+typedef struct {
+	char N_terminal;
+	string b_dot;
+	string a_dot;
+	string avan;
+} LR_S;
+
 map <char, vector<string>> rules;
 set<char> N, T;
 int k;
 char Ax;
 
-
+vector<pair<char, string>> rules_enum;
 
 map<char, set<string>> First_nt;
 
 map<int,map<char, int>> GoTo;
 
-vector<set<string>> States;
+vector<set<LR_S>> States;
+
 
 set<char> GetSet() {
 	set<char> result;
@@ -44,6 +53,13 @@ map<char, vector<string>> ReadRules(int n) {
 		cin >> r;
 		rules[N].push_back(r);
 		cin.ignore();
+	}
+
+	rules_enum.push_back({ 'Z', string(1, Ax) });
+	for (auto k : rules) {
+		for (auto j : k.second) {
+			rules_enum.push_back({ k.first, j });
+		}
 	}
 	return rules;
 }
@@ -167,14 +183,6 @@ set<string> EFF(string s) {
 }
 
 
-typedef struct {
-	char N_terminal;
-	string b_dot;
-	string a_dot;
-	string avan;
-} LR_S;
-
-
 
 set <LR_S> Closure(LR_S init) {
 	set <LR_S> res1;
@@ -233,7 +241,30 @@ vector<set<LR_S>> Automata() {
 	return result;
 }
 
+map<int, map<string, set<string>>> CreateAction() {
+	map<int, map<string, set<string>>> result;
+	for (int i = 0; i < States.size(); i++) {
+		for (auto l : States[i]) {
+			if (l.a_dot != "") {
+				for (auto u : EFF(l.a_dot + l.avan)) {
+					result[i][u].insert("Shift");
+				}
+			}
+			else {
+				if (l.a_dot == "" && l.avan != "$") {
+					int n = find(rules_enum.begin(), rules_enum.end(), { l.N_terminal, l.b_dot }) - rules.begin(); //should be corrected
+					result[i][l.avan].insert("Reduce" + to_string(n));
+				}
+				else {
+					if (l.a_dot == "" && l.avan == "$") {
+						result[i][l.avan].insert("Accept");
+					}
+				}
 
+			}
+		}
+	}
+}
 
 int main()
 {
@@ -257,8 +288,11 @@ int main()
 	cout << "Enter the rules: \n";
 	rules = ReadRules(n);
 
+	
+
 	First_nt = First_NT();
 
+	States = Automata();
 	//множества lr ситуаций
 	//автомат
 	//таблица

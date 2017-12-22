@@ -483,6 +483,10 @@ string Analyze(string w){
 }
 
 void Print_Used_Rules(string rules) {
+	if (rules == "error") {
+		cout << rules << endl;
+		return;
+	}
 	cout << endl << "Used rules " << endl;
 	stringstream ss(rules);
 	stack<int> numbers;

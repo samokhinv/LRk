@@ -143,6 +143,8 @@ set<string> operator+(set<string> s1, set<string> s2) {
 
 //First_k, described in Serebryakov
 map<char,set<string>> First_NT() {
+	N.insert('Z');
+	T.insert('e');
 	map<char, set<string>> result0;
 	map<char, set<string>> result1;
 	for (auto i : T) {
@@ -168,7 +170,7 @@ map<char,set<string>> First_NT() {
 		for (auto i : N) {
 			for (auto l : rules[i]) {
 				set<string> r_sum;
-				for (int m = 0; i < l.length(); i++) {
+				for (int m = 0; m < l.length(); m++) {
 					r_sum = r_sum + result0[l[m]];
 				}
 				result1[i].insert(r_sum.begin(), r_sum.end());
@@ -237,8 +239,7 @@ set<LR_S> Closure(LR_S init) {
 		res0 = res1;
 		for (auto i : res0) {
 			if (N.find(i.a_dot[0]) != N.end()) {
-
-				for (auto l : First_S((i.a_dot + i.avan).substr(1, (i.a_dot + i.avan).length()))) {
+				for (auto l : First_S((i.a_dot + i.avan).substr(1))) {
 					for (auto m: rules[i.a_dot[0]]){
 						res1.insert({ i.a_dot[0], string() , m, l });
 						}
@@ -253,18 +254,19 @@ set<LR_S> Closure(LR_S init) {
 vector<set<LR_S>> Automata() {
 	int current = 0;
 	vector<set<LR_S>> result;
-	map<char, set<LR_S>> calculations;
-	
-	result.push_back(Closure({ 'Z', "", string(1,Ax), string(1,'$') }));
+
+	N.insert('Z');
+	result.push_back(Closure({ 'Z', "", string(1,Ax), string(1,'e') }));
 	
 	set<char> NT;
 	NT.insert(N.begin(), N.end());
 	NT.insert(T.begin(), T.end());
 	while (current <= result.size() - 1) {
+		map<char, set<LR_S>> calculations;
 		for (auto n : NT) {
 			for (auto s : result[current]) {
-				if (s.a_dot[0] == n) {
-					set<LR_S> temp = Closure({ s.N_terminal, s.b_dot + string(1, s.a_dot[0]), s.avan });
+				if (s.a_dot[0] == n && s.a_dot!="e") {
+					set<LR_S> temp = Closure({ s.N_terminal, s.b_dot + string(1, s.a_dot[0]), s.a_dot.substr(1), s.avan });
 					calculations[n].insert(temp.begin(), temp.end());
 				}
 			}
@@ -283,6 +285,14 @@ vector<set<LR_S>> Automata() {
 		current++;
 	}
 
+
+	for (int i = 0; i < result.size(); i++) {
+		cout << i << endl;
+		for (auto j : result[i]) {
+			cout << j.N_terminal << "->" << j.b_dot << "." << j.a_dot << "," << j.avan << endl;
+		}
+		cout << endl;
+	}
 	return result;
 }
 
@@ -296,11 +306,11 @@ map<int, map<string, set<string>>> CreateAction() {
 				}
 			}
 			else {
-				if (l.a_dot == "" && l.avan != "$") {
+				if (l.a_dot == "" && l.avan != "e") {
 					int n = 0;
 					pair<char, string> cur_rule = { l.N_terminal, l.b_dot };
 					while (1) {
-						if (cur_rule == rules_enum[n]) {
+						if (rules_enum.size() == n || cur_rule == rules_enum[n]) {
 							break;
 						}
 						else {
@@ -310,7 +320,7 @@ map<int, map<string, set<string>>> CreateAction() {
 					result[i][l.avan].insert("Reduce" + to_string(n));
 				}
 				else {
-					if (l.a_dot == "" && l.avan == "$") {
+					if (l.a_dot == "" && l.avan == "e") {
 						result[i][l.avan].insert("Accept");
 					}
 				}
@@ -418,10 +428,12 @@ int main()
 	rules = ReadRules(n);
 
 	
-
+	
 	First_nt = First_NT();
 
+
 	States = Automata();
+	cin.ignore();
 	Action = CreateAction();
 
 	if (Check()) {

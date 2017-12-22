@@ -3,12 +3,14 @@
 
 #include "stdafx.h"
 #include <iostream>
+#include <iomanip>
 #include <set>
 #include <vector>
 #include <map>
 #include <string>
 #include <queue>
 #include <stack>
+#include <sstream>
 
 using namespace std;
 
@@ -289,7 +291,7 @@ vector<set<LR_S>> Automata() {
 	for (int i = 0; i < result.size(); i++) {
 		cout << i << endl;
 		for (auto j : result[i]) {
-			cout << j.N_terminal << "->" << j.b_dot << "." << j.a_dot << "," << j.avan << endl;
+			cout << ((j.N_terminal == 'Z')? "S'" : string(1,j.N_terminal)) << "->" << j.b_dot << "." << j.a_dot << "," << j.avan << endl;
 		}
 		cout << endl;
 	}
@@ -306,7 +308,7 @@ map<int, map<string, set<string>>> CreateAction() {
 				}
 			}
 			else {
-				if (l.a_dot == "" && l.avan != "e") {
+				if (l.a_dot == "" && l.N_terminal!='Z') {
 					int n = 0;
 					pair<char, string> cur_rule = { l.N_terminal, l.b_dot };
 					while (1) {
@@ -320,7 +322,7 @@ map<int, map<string, set<string>>> CreateAction() {
 					result[i][l.avan].insert("Reduce" + to_string(n));
 				}
 				else {
-					if (l.a_dot == "" && l.avan == "e") {
+					if (l.N_terminal == 'Z' && l.a_dot == "" && l.avan == "e") {
 						result[i][l.avan].insert("Accept");
 					}
 				}
@@ -331,6 +333,26 @@ map<int, map<string, set<string>>> CreateAction() {
 	return result;
 }
 
+void Print_Goto(){
+	cout << endl << "GoTo table" << endl;
+	
+	set<char> NT;
+	auto GT_copy = GoTo;
+	NT.insert(N.begin(), N.end());
+	NT.insert(T.begin(), T.end());
+	cout << setw(4) << "";
+	for (auto i : NT) {
+		cout << setw(4) << i;
+	}
+	cout << endl;
+	for (auto i : GoTo) {
+		cout << setw(4) << i.first;
+		for (auto m : NT) {
+			cout << setw(4) << ((i.second.count(m) != 0) ? to_string(i.second[m]) : "");
+		}
+		cout << endl;
+	}
+}
 
 bool Check() {
 	for (auto i : Action) {
@@ -343,13 +365,31 @@ bool Check() {
 	return true;
 }
 
+//Not connected with the topic of the programm
+ostream& operator<< (ostream& os, const stack<string>& state) {
+	stack<string> copy = state;
+	vector<string> copies;
+	while (!copy.empty()) {
+		copies.push_back(copy.top());
+		copy.pop();
+	}
+	for (int i = 0; i < copies.size(); i++) {
+		cout << copies[copies.size() - 1 - i];
+		if (i != copies.size() - 1) {
+			cout << "-";
+		}
+	}
+	return os;
+}
+
 string Analyze(string w){
 	string word = w;
 	stack<string> state;
 	state.push("0");
 	string steps;
-	bool error;
+	bool error = false;
 	while (1) {
+		cout << state << '\t' << w << endl;
 		string avan = w.substr(0, k);
 		int t = stoi(state.top(), nullptr);
 		if (Action[t].count(avan) == 0) {
@@ -366,6 +406,7 @@ string Analyze(string w){
 					int gt = GoTo[t][avan[0]];
 					state.push(string(1, avan[0]));
 					state.push(to_string(gt));
+					w = w.substr(1);
 				}
 			}
 			else {
@@ -376,6 +417,7 @@ string Analyze(string w){
 					//every set should have only one action since the grammar is lr(k)
 					for (auto r : Action[t][avan]) {
 						steps += r.substr(6);
+						steps += ' ';
 						int rule_number = stoi(r.substr(6));
 						int s = 2 * rules_enum[rule_number].second.length();
 						for (int i = 0; i < s; i++) {
@@ -404,6 +446,20 @@ string Analyze(string w){
 		return steps;
 }
 
+void Print_Used_Rules(string rules) {
+	stringstream ss(rules);
+	stack<int> numbers;
+	while (ss.peek() != EOF) {
+		int n;
+		ss >> n;
+		numbers.push(n);
+		ss.ignore();
+	}
+	while (!numbers.empty()) {
+		cout << rules_enum[numbers.top()].first << "->" << rules_enum[numbers.top()].second << endl;
+		numbers.pop();
+	}
+}
 
 int main()
 {
@@ -435,14 +491,16 @@ int main()
 	States = Automata();
 	cin.ignore();
 	Action = CreateAction();
+	Print_Goto();
 
+	cin.ignore();
 	if (Check()) {
 		cout << "This is LR(k) grammar\n";
 		while (1) {
 			cout << "Enter the word: ";
 			string word;
 			cin >> word;
-			cout << Analyze(word) << endl;
+			Print_Used_Rules(Analyze(word));
 		}
 	}
 	else {

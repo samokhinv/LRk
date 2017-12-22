@@ -354,6 +354,42 @@ void Print_Goto(){
 	}
 }
 
+void PrintAction() {
+	cout << endl << "Action table" << endl;
+
+	auto A_copy = Action;
+	set<string> avan;
+	int maxlen = 7;
+	for (auto i : A_copy) {
+		for (auto j : i.second) {
+			avan.insert(j.first);
+			if (j.first.length() > maxlen) {
+				maxlen = j.first.length();
+			}
+		}
+	}
+	cout << setw(4) << "";
+	for (auto i : avan) {
+		cout << setw(maxlen + 3) << i;
+	}
+	cout << endl;
+	for (auto i : A_copy) {
+		cout << setw(4) << i.first;
+		for (auto j : avan) {
+			if (i.second.count(j) != 0) {
+				for (auto k : i.second[j]) {
+					cout << setw(maxlen + 3) << k;
+					break;
+				}
+			}
+			else {
+				cout << setw(maxlen + 3) << "";
+			}
+		}
+		cout << endl;
+	}
+}
+
 bool Check() {
 	for (auto i : Action) {
 		for (auto l : i.second) {
@@ -447,6 +483,7 @@ string Analyze(string w){
 }
 
 void Print_Used_Rules(string rules) {
+	cout << endl << "Used rules " << endl;
 	stringstream ss(rules);
 	stack<int> numbers;
 	while (ss.peek() != EOF) {
@@ -496,10 +533,13 @@ int main()
 	cin.ignore();
 	if (Check()) {
 		cout << "This is LR(k) grammar\n";
+		PrintAction();
+		cout << endl;
 		while (1) {
 			cout << "Enter the word: ";
 			string word;
 			cin >> word;
+			cout << endl;
 			Print_Used_Rules(Analyze(word));
 		}
 	}

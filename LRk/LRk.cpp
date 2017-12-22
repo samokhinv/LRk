@@ -540,7 +540,7 @@ int main()
 			string word;
 			cin >> word;
 			cout << endl;
-			Print_Used_Rules(Analyze(word));
+			Print_Used_Rules(Analyze(word + "e"));
 		}
 	}
 	else {

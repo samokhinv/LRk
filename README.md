@@ -5,7 +5,7 @@
 |Что требуется| Что готово|
 |-------------|:---------:|
 |`FIRST`<sub>k|:thumbsup:|
-|`EFF`<sub>k|:thumbsup:|
+|`EFF`<sub>k|:greey_exclamation: poor in cycles|
 |`GoTo`|:smiley:|
 |`Action`|:smiley:|
 |Дерево|:no_mouth:|

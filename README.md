@@ -5,7 +5,7 @@
 |Что требуется| Что готово|
 |-------------|:---------:|
 |`FIRST`<sub>k|:thumbsup:|
-|`EFF`<sub>k|:thumbsup:|
+|`EFF`<sub>k|:grey_exclamation: зацикливается, когда правила закольцовываются|
 |`GoTo`|:smiley:|
 |`Action`|:smiley:|
 |Дерево|:no_mouth:|

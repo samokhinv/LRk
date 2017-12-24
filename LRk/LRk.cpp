@@ -11,6 +11,8 @@
 #include <queue>
 #include <stack>
 #include <sstream>
+#include <exception>
+#include <algorithm>
 
 using namespace std;
 
@@ -22,19 +24,19 @@ typedef struct {
 	string avan;
 } LR_S;
 
-map <char, vector<string>> rules;
+map <char, vector<string> > rules;
 set<char> N, T;
 int k;
 char Ax;
 
-vector<pair<char, string>> rules_enum;
+vector<pair<char, string> > rules_enum;
 
-map<char, set<string>> First_nt;
+map<char, set<string> > First_nt;
 
-map<int,map<char, int>> GoTo;
-map<int, map<string, set<string>>> Action;
+map<int,map<char, int> > GoTo;
+map<int, map<string, set<string> > > Action;
 
-vector<set<LR_S>> States;
+vector<set<LR_S> > States;
 
 bool operator< (const LR_S arg1, const LR_S arg2) {
 	if (arg1.N_terminal < arg2.N_terminal)
@@ -90,8 +92,8 @@ set<char> GetSet() {
 	return result;
 }
 
-map<char, vector<string>> ReadRules(int n) {
-	map<char, vector<string>> rules;
+map<char, vector<string> > ReadRules(int n) {
+	map<char, vector<string> > rules;
 	for (int i = 0; i < n; i++) {
 		char N;
 		string r;
@@ -144,11 +146,11 @@ set<string> operator+(set<string> s1, set<string> s2) {
 
 
 //First_k, described in Serebryakov
-map<char,set<string>> First_NT() {
+map<char,set<string> > First_NT() {
 	N.insert('Z');
 	T.insert('e');
-	map<char, set<string>> result0;
-	map<char, set<string>> result1;
+	map<char, set<string> > result0;
+	map<char, set<string> > result1;
 	for (auto i : T) {
 		result1[i].insert(string( 1, i));
 	}
@@ -212,12 +214,41 @@ set<string> EFF1(char n) {
 			}
 		}
 		result.insert(temp.begin(), temp.end());
+		
 	}
-
-	return result;
+	if (result.empty()) {
+			throw exception("empty");
+		}
+	else
+		return result;
 }
 
+/*set<string> effresult0;
+set<string> effresult1;
+set<string> EFF2() {
+	map<char, set<string>> result0, result1;
+	map<char, set<string>> follow_old, follow_new;
+	set<char> old, neww;
 
+	//init
+	for (auto n : N) {
+		for (auto i : rules[n]) {
+			if (N.find(i[0]) == N.end() && i != "e") {
+				set<string> temp = First_S(i);
+				result1[n].insert(temp.begin(), temp.end());
+			}
+			else {
+				if (N.find(i[0]) != N.end()) {
+					neww.insert(i[0])
+				}
+			}
+		}
+	}
+
+
+
+}
+*/
 set<string> EFF(string s) {
 	set<string> result;
 	if (N.find(s[0]) == N.end()) {
@@ -253,9 +284,9 @@ set<LR_S> Closure(LR_S init) {
 }
 
 
-vector<set<LR_S>> Automata() {
+vector<set<LR_S> > Automata() {
 	int current = 0;
-	vector<set<LR_S>> result;
+	vector<set<LR_S> > result;
 
 	N.insert('Z');
 	result.push_back(Closure({ 'Z', "", string(1,Ax), string(1,'e') }));
@@ -264,7 +295,7 @@ vector<set<LR_S>> Automata() {
 	NT.insert(N.begin(), N.end());
 	NT.insert(T.begin(), T.end());
 	while (current <= result.size() - 1) {
-		map<char, set<LR_S>> calculations;
+		map<char, set<LR_S> > calculations;
 		for (auto n : NT) {
 			for (auto s : result[current]) {
 				if (s.a_dot[0] == n && s.a_dot!="e") {
@@ -298,13 +329,18 @@ vector<set<LR_S>> Automata() {
 	return result;
 }
 
-map<int, map<string, set<string>>> CreateAction() {
-	map<int, map<string, set<string>>> result;
+map<int, map<string, set<string> > > CreateAction() {
+	map<int, map<string, set<string> > > result;
 	for (int i = 0; i < States.size(); i++) {
 		for (auto l : States[i]) {
 			if (l.a_dot != "") {
-				for (auto u : EFF(l.a_dot + l.avan)) {
-					result[i][u].insert("Shift");
+				//for (auto u : EFF(l.a_dot + l.avan)) {
+				//result[i][u].insert("Shift");
+				//}
+				if (N.find(l.a_dot[0]) == N.end()) {
+					for (auto u : First_S(l.a_dot + l.avan)) {
+						result[i][u].insert("Shift");
+					}
 				}
 			}
 			else {
@@ -504,7 +540,7 @@ void Print_Used_Rules(string rules) {
 
 int main()
 {
-
+	string(1,'b').substr(0, 1);
 	cout << "Enter k: ";
 	cin >> k;
 	cin.ignore();

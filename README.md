@@ -4,13 +4,12 @@
 
 |Что требуется| Что готово|
 |-------------|:---------:|
+|&#8853;<sub>k|:thumbsup:|
 |`FIRST`<sub>k|:thumbsup:|
-|`EFF`<sub>k|:grey_exclamation: зацикливается, когда правила закольцовываются|
 |`GoTo`|:smiley:|
 |`Action`|:smiley:|
 |Дерево|:no_mouth:|
 |Интерфейс|:no_mouth:|
-|`LR(0)`|:thumbsdown:|
   
 ![alt_text](https://cs8.pikabu.ru/post_img/big/2017/07/18/7/1500377160124885495.jpg "Шутка")
 

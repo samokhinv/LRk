@@ -24,19 +24,21 @@ typedef struct {
 	string avan;
 } LR_S;
 
-map <char, vector<string> > rules;
+map <char, vector<string>> rules;
 set<char> N, T;
 int k;
 char Ax;
 
-vector<pair<char, string> > rules_enum;
+vector<pair<char, string>> rules_enum;
 
-map<char, set<string> > First_nt;
+map<char, set<string>> First_nt;
 
-map<int,map<char, int> > GoTo;
-map<int, map<string, set<string> > > Action;
+map<int,map<char, int>> GoTo;
+map<int, map<string, set<string>>> Action;
 
-vector<set<LR_S> > States;
+map<int, set<string>>  Action0;
+
+vector<set<LR_S>> States;
 
 bool operator< (const LR_S arg1, const LR_S arg2) {
 	if (arg1.N_terminal < arg2.N_terminal)
@@ -92,8 +94,8 @@ set<char> GetSet() {
 	return result;
 }
 
-map<char, vector<string> > ReadRules(int n) {
-	map<char, vector<string> > rules;
+map<char, vector<string>> ReadRules(int n) {
+	map<char, vector<string>> rules;
 	for (int i = 0; i < n; i++) {
 		char N;
 		string r;
@@ -146,11 +148,11 @@ set<string> operator+(set<string> s1, set<string> s2) {
 
 
 //First_k, described in Serebryakov
-map<char,set<string> > First_NT() {
+map<char,set<string>> First_NT() {
 	N.insert('Z');
 	T.insert('e');
-	map<char, set<string> > result0;
-	map<char, set<string> > result1;
+	map<char, set<string>> result0;
+	map<char, set<string>> result1;
 	for (auto i : T) {
 		result1[i].insert(string( 1, i));
 	}
@@ -200,71 +202,32 @@ set<string> First_S(string s) {
 	return result;
 }
 
-set<string> EFF1(char n) { 
-	set<string> result;
 
-	for (auto i : rules[n]) {
-		set<string> temp;
-		if (N.find(i[0]) == N.end() && i != "e") {
-			temp = First_S(i);
-		}
-		else {
-			if (N.find(i[0]) != N.end()) {
-				temp = EFF1(i[0]) + First_S(i.substr(1, i.length()));
-			}
-		}
-		result.insert(temp.begin(), temp.end());
-		
-	}
-	if (result.empty()) {
-			throw exception("empty");
-		}
-	else
-		return result;
-}
 
-/*set<string> effresult0;
-set<string> effresult1;
-set<string> EFF2() {
-	map<char, set<string>> result0, result1;
-	map<char, set<string>> follow_old, follow_new;
-	set<char> old, neww;
 
-	//init
-	for (auto n : N) {
-		for (auto i : rules[n]) {
-			if (N.find(i[0]) == N.end() && i != "e") {
-				set<string> temp = First_S(i);
-				result1[n].insert(temp.begin(), temp.end());
-			}
-			else {
-				if (N.find(i[0]) != N.end()) {
-					neww.insert(i[0])
+
+
+set<LR_S> Closure0(LR_S init) {
+	set<LR_S> res1;
+	set<LR_S> res0;
+	res1.insert(init);
+	do {
+		res0 = res1;
+		for (auto i : res0) {
+			if (N.find(i.a_dot[0]) != N.end()) {
+				for (auto m : rules[i.a_dot[0]]) {
+					res1.insert({ i.a_dot[0], string() , m, "e" });
 				}
 			}
 		}
-	}
-
-
-
+	} while (res0 != res1);
+	return res1;
 }
-*/
-set<string> EFF(string s) {
-	set<string> result;
-	if (N.find(s[0]) == N.end()) {
-		return First_S(s);
-	}
-	else 
-	{
-		if (s != "e") {
-			return EFF1(s[0]) + First_S(s.substr(1, s.length()));
-		}
-	}
-}
-
-
 
 set<LR_S> Closure(LR_S init) {
+	if (k == 0) {
+		return Closure0(init);
+	}
 	set<LR_S> res1;
 	set<LR_S> res0;
 	res1.insert(init);
@@ -284,9 +247,9 @@ set<LR_S> Closure(LR_S init) {
 }
 
 
-vector<set<LR_S> > Automata() {
+vector<set<LR_S>> Automata() {
 	int current = 0;
-	vector<set<LR_S> > result;
+	vector<set<LR_S>> result;
 
 	N.insert('Z');
 	result.push_back(Closure({ 'Z', "", string(1,Ax), string(1,'e') }));
@@ -295,7 +258,7 @@ vector<set<LR_S> > Automata() {
 	NT.insert(N.begin(), N.end());
 	NT.insert(T.begin(), T.end());
 	while (current <= result.size() - 1) {
-		map<char, set<LR_S> > calculations;
+		map<char, set<LR_S>> calculations;
 		for (auto n : NT) {
 			for (auto s : result[current]) {
 				if (s.a_dot[0] == n && s.a_dot!="e") {
@@ -329,11 +292,11 @@ vector<set<LR_S> > Automata() {
 	return result;
 }
 
-map<int, map<string, set<string> > > CreateAction() {
-	map<int, map<string, set<string> > > result;
+map<int, map<string, set<string>>> CreateAction() {
+	map<int, map<string, set<string>>> result;
 	for (int i = 0; i < States.size(); i++) {
 		for (auto l : States[i]) {
-			if (l.a_dot != "") {
+			if (l.a_dot != "" && l.a_dot != "e") {
 				//for (auto u : EFF(l.a_dot + l.avan)) {
 				//result[i][u].insert("Shift");
 				//}
@@ -344,9 +307,9 @@ map<int, map<string, set<string> > > CreateAction() {
 				}
 			}
 			else {
-				if (l.a_dot == "" && l.N_terminal!='Z') {
+				if ((l.a_dot == "" || l.a_dot == "e") && l.N_terminal!='Z') {
 					int n = 0;
-					pair<char, string> cur_rule = { l.N_terminal, l.b_dot };
+					pair<char, string> cur_rule = { l.N_terminal, (l.b_dot == "" ? "e" : l.b_dot)};
 					while (1) {
 						if (rules_enum.size() == n || cur_rule == rules_enum[n]) {
 							break;
@@ -368,10 +331,44 @@ map<int, map<string, set<string> > > CreateAction() {
 	}
 	return result;
 }
+map<int, set<string>> CreateAction0() {
+	map<int, set<string>> result;
+	for (int i = 0; i < States.size(); i++) {
+		for (auto l : States[i]) {
+			if (l.a_dot != "" && l.a_dot != "e") {
+				if (N.find(l.a_dot[0]) == N.end()) {
+					result[i].insert("Shift");
+				}
+			}
+			else {
+				if ((l.a_dot == "" || l.a_dot == "e") && l.N_terminal != 'Z') {
+					int n = 0;
+					pair<char, string> cur_rule = { l.N_terminal, (l.b_dot == "" ? "e" : l.b_dot) };
+					while (1) {
+						if (rules_enum.size() == n || cur_rule == rules_enum[n]) {
+							break;
+						}
+						else {
+							n++;
+						}
+					}
+					result[i].insert("Reduce" + to_string(n));
+				}
+				else {
+					if (l.N_terminal == 'Z' && l.a_dot == "" ) {
+						result[i].insert("Accept");
+					}
+				}
 
-void Print_Goto(){
+			}
+		}
+	}
+	return result;
+}
+
+void Print_Goto() {
 	cout << endl << "GoTo table" << endl;
-	
+
 	set<char> NT;
 	auto GT_copy = GoTo;
 	NT.insert(N.begin(), N.end());
@@ -390,7 +387,42 @@ void Print_Goto(){
 	}
 }
 
+void PrintAction0() {
+	cout << endl << "Action table" << endl;
+
+	auto A_copy = Action0;
+	int maxlen = 7;
+	for (auto i : A_copy) {
+		for (auto j : i.second) {
+			if (j.length() > maxlen) {
+				maxlen = j.length();
+			}
+		}
+	}
+	cout << setw(4) << "";
+	cout << setw(maxlen + 3) << "";
+	cout << endl;
+	for (auto i : A_copy) {
+		cout << setw(4) << i.first;
+		if (!i.second.empty()) {
+			for (auto k : i.second) {
+				cout << setw(maxlen + 3) << k;
+				break;
+			}
+		}
+		else {
+			cout << setw(maxlen + 3) << "";
+		}
+		cout << endl;
+	}
+
+}
+
 void PrintAction() {
+	if (k == 0) {
+		PrintAction0();
+		return;
+	}
 	cout << endl << "Action table" << endl;
 
 	auto A_copy = Action;
@@ -426,7 +458,19 @@ void PrintAction() {
 	}
 }
 
+
+bool Check0() {
+	for (auto i : Action0) {
+		if (i.second.size() > 1) {
+			return false;
+		}
+	}
+	return true;
+}
+
 bool Check() {
+	if (k == 0)
+		return Check0();
 	for (auto i : Action) {
 		for (auto l : i.second) {
 			if (l.second.size() > 1) {
@@ -436,6 +480,8 @@ bool Check() {
 	}
 	return true;
 }
+
+
 
 //Not connected with the topic of the programm
 ostream& operator<< (ostream& os, const stack<string>& state) {
@@ -454,8 +500,72 @@ ostream& operator<< (ostream& os, const stack<string>& state) {
 	return os;
 }
 
+string Analyze0(string w) {
+	stack<string> state;
+	state.push("0");
+	string steps;
+	bool error = false;
+	while (1) {
+		cout << state << '\t' << w << endl;
+		char avan = w[0];
+		int t = stoi(state.top(), nullptr);
+		if (Action0[t].empty()) {
+			error = true;
+			break;
+		}
+		else {
+			if (Action0[t].count("Shift") != 0) {
+				if (GoTo[t].count(avan) == 0) {
+					error = true;
+					break;
+				}
+				else {
+					int gt = GoTo[t][avan];
+					state.push(string(1, avan));
+					state.push(to_string(gt));
+					w = w.substr(1);
+				}
+			}
+			else {
+				if (Action0[t].count("Accept") != 0) {
+					break;
+				}
+				else {
+					//every set should have only one action since the grammar is lr(k)
+					for (auto r : Action0[t]) {
+						steps += r.substr(6); //six because there is a number of used rule after the word "reduce"
+						steps += ' ';
+						int rule_number = stoi(r.substr(6));
+						int s = 2 * (rules_enum[rule_number].second == "e" ? 0 : rules_enum[rule_number].second.length());
+						for (int i = 0; i < s; i++) {
+							state.pop();
+						}
+						int new_t = stoi(state.top(), nullptr);
+						if (GoTo[new_t].count(rules_enum[rule_number].first) == 0) {
+							error = true;
+							break;
+						}
+						else {
+							int gt = GoTo[new_t][rules_enum[rule_number].first];
+							state.push(string(1, rules_enum[rule_number].first));
+							state.push(to_string(gt));
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+	if (error) {
+		return "error";
+	}
+	else
+		return steps;
+}
+
 string Analyze(string w){
-	string word = w;
+	if (k == 0)
+		return Analyze0(w);
 	stack<string> state;
 	state.push("0");
 	string steps;
@@ -491,7 +601,7 @@ string Analyze(string w){
 						steps += r.substr(6);
 						steps += ' ';
 						int rule_number = stoi(r.substr(6));
-						int s = 2 * rules_enum[rule_number].second.length();
+						int s = 2 * (rules_enum[rule_number].second == "e" ? 0 :rules_enum[rule_number].second.length());
 						for (int i = 0; i < s; i++) {
 							state.pop();
 						}
@@ -517,6 +627,9 @@ string Analyze(string w){
 	else
 		return steps;
 }
+
+
+
 
 void Print_Used_Rules(string rules) {
 	if (rules == "error") {
@@ -567,8 +680,20 @@ int main()
 
 	States = Automata();
 	cin.ignore();
-	Action = CreateAction();
+	if (k == 0) {
+		Action0 = CreateAction0();
+	}
+	else {
+		Action = CreateAction();
+	}
 	Print_Goto();
+
+	cout << endl;
+
+	for (int i = 0; i < rules_enum.size(); i++) {
+		cout << i << " " << rules_enum[i].first << " " << rules_enum[i].second << endl;
+	}
+	cout << endl;
 
 	cin.ignore();
 	if (Check()) {
